@@ -8,7 +8,7 @@ class CRobot
     
     void BroadcastMessage( const t_message& aMessage ) 
     { std::cout << "Broadcasting: " << aMessage << std::endl; }
-    const t_message BuildMessage()
+    t_message BuildMessage()
     { return "Hey there"; }
 };
 
