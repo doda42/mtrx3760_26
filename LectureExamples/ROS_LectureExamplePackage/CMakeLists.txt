@@ -99,6 +99,14 @@ target_link_libraries(colourDetection ${OpenCV_LIBRARIES})
 add_executable(navigate src/navigate.cpp)
 ament_target_dependencies(navigate rclcpp action_msgs rclcpp_action nav2_msgs)
 
+add_executable(moveForwardServer src/move_forward_service.cpp)
+ament_target_dependencies(moveForwardServer rclcpp geometry_msgs)
+target_link_libraries(moveForwardServer ${cpp_typesupport_target})
+
+add_executable(moveForwardClient src/move_forward_client.cpp)
+ament_target_dependencies(moveForwardClient rclcpp geometry_msgs)
+target_link_libraries(moveForwardClient ${cpp_typesupport_target})
+
 add_executable(decorator src/decorator.cpp)
 ament_target_dependencies(decorator rclcpp geometry_msgs)
 
@@ -126,6 +134,8 @@ install(TARGETS
   aprilTagDetection
   colourDetection
   navigate
+  moveForwardServer
+  moveForwardClient
   decorator
   factory
   DESTINATION lib/${PROJECT_NAME}
