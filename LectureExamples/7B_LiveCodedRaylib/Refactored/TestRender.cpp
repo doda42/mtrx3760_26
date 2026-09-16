@@ -9,12 +9,15 @@
 #include <iostream>
 #include <vector>
 
+//--Fwd decl---
+class CSim;
+
 //-----------------------------------------------------------------------------
 // todo: comment properly
 class CRigidBody
 {
     public:
-        CRigidBody( CRender& arRender );
+        CRigidBody( CRender& arRender, const CSim& arSim );
 
         //---Physics simulation---
         virtual void Update() = 0;
@@ -25,7 +28,6 @@ class CRigidBody
     protected:
         //---Consts---
         const float mDamping;   // energy loss on bounce
-        const float mGravity;   // acceleration due to mGravity
 
         //---Physics properties---
         Color mColour;
@@ -34,6 +36,7 @@ class CRigidBody
 
         //---Renderer---
         CRender& mrRender;
+        const CSim& mrSim;
 };
 
 //-----------------------------------------------------------------------------
@@ -41,7 +44,7 @@ class CRigidBody
 class CBall: public CRigidBody
 {
     public:
-        CBall( CRender& arRender );
+        CBall( CRender& arRender, const CSim& arSim );
         
         //---Physics simulation---
         void Update();
@@ -59,7 +62,7 @@ class CBall: public CRigidBody
 class CBox: public CRigidBody
 {
     public:
-        CBox( CRender& arRender );
+        CBox( CRender& arRender, const CSim& arSim );
 
         //---Physics simulation---
         void Update();
@@ -81,12 +84,16 @@ class CSim
         ~CSim();
         
         void Run();
+        float GetGravity() const;
         
     private:
-        static const int NumBalls;
-        static const int NumBoxes;
+        //---Consts---
+        const float mGravity;   // acceleration due to mGravity
+        const int mNumBalls;
+        const int mNuMBoxes;
+        
+        //---
         CRender mRender;
-
         std::vector<CRigidBody*> mBodies;
 };
 
@@ -108,14 +115,18 @@ int main()
 
 //-----------------------------------------------------------------------------
 CSim::CSim()
+:
+    mGravity( 0.5f ),
+    mNumBalls( 500 ),
+    mNuMBoxes( 6 )
 {
-    for( int i=0; i<NumBoxes; ++i )
+    for( int i=0; i<mNuMBoxes; ++i )
     {
-        mBodies.push_back( new CBox( mRender ) );
+        mBodies.push_back( new CBox( mRender, *this ) );
     }
-    for( int i=0; i<NumBalls; ++i )
+    for( int i=0; i<mNumBalls; ++i )
     {
-        mBodies.push_back( new CBall( mRender ) );
+        mBodies.push_back( new CBall( mRender, *this ) );
     }
 }
 
@@ -147,8 +158,14 @@ void CSim::Run()
     }
 }
 
+float CSim::GetGravity() const
+{
+    return mGravity;
+}
+
+
 //-----------------------------------------------------------------------------
-CRigidBody::CRigidBody( CRender& arRender )
+CRigidBody::CRigidBody( CRender& arRender, const CSim& arSim )
     :   mPosition
         ({
             400.0f + (100.0f * (float(rand())/RAND_MAX - 0.5f)), 
@@ -156,7 +173,6 @@ CRigidBody::CRigidBody( CRender& arRender )
         }),
         mVelocity( {4.0f + 4.0f * (float(rand())/RAND_MAX - 0.5f), 0.0f} ),
         mDamping( 0.97f ),
-        mGravity( 0.5f ),
         mColour
         { 
             (unsigned char)(rand()%255), 
@@ -164,22 +180,23 @@ CRigidBody::CRigidBody( CRender& arRender )
             (unsigned char)(rand()%255), 
             128 
         },
+        mrSim( arSim),
         mrRender( arRender )
 {
     
 }
 
 //-----------------------------------------------------------------------------
-CBall::CBall( CRender& arRender )
+CBall::CBall( CRender& arRender, const CSim& arSim )
     :   mRadius( 25.0f + 20.0f * (float(rand())/RAND_MAX - 0.5f)),
-        CRigidBody( arRender )
+        CRigidBody( arRender, arSim )
 {
     
 }
 
 void CBall::Update()
 {
-    mVelocity.y += mGravity;
+    mVelocity.y += mrSim.GetGravity();
 
     // Update position // TODO: use or program a vector that knows how to mPosition += mVelocity;
     mPosition.x += mVelocity.x;
@@ -217,16 +234,16 @@ void CBall::Draw() const
 
 
 //-----------------------------------------------------------------------------
-CBox::CBox( CRender& arRender )
+CBox::CBox( CRender& arRender, const CSim& arSim )
     :   mSize( { 60.0f + 120.0f * (float(rand())/RAND_MAX), 40.0f + 80.0f * (float(rand())/RAND_MAX) } ),
-        CRigidBody( arRender )
+        CRigidBody( arRender, arSim )
 {
 
 }
 
 void CBox::Update()
 {
-    mVelocity.y += mGravity;
+    mVelocity.y += mrSim.GetGravity();
 
     mPosition.x += mVelocity.x;
     mPosition.y += mVelocity.y;
@@ -260,7 +277,5 @@ void CBox::Draw() const
     mrRender.DrawRectangle( mPosition, mSize, mColour );
 }
 
-//-----------
-const int CSim::NumBalls = 500;
-const int CSim::NumBoxes = 6;
+
 
