@@ -2,33 +2,6 @@
 // TestRender.cpp
 //
 // A simple demo of using the CRender class.
-//
-// See CRender.h for instructions on installing raylib. There are two ways to
-// install it, and the build command you need depends on which one you used.
-//
-//
-// BUILDING, IF YOU INSTALLED RAYLIB WITH APT (on your own machine)
-//
-// apt puts raylib where the compiler already looks, so nothing needs pointing
-// out to it:
-//
-//     g++ -Wall -Wextra TestRender.cpp CRender.cpp -lraylib -o TestRender
-//
-//
-// BUILDING, IF YOU BUILT RAYLIB FROM SOURCE (on a lab machine)
-//
-// Your copy of raylib lives in your home directory, which the compiler does
-// not search, so you have to say where the header (-I) and the library (-L)
-// are. Everything else is the same:
-//
-//     g++ -Wall -Wextra TestRender.cpp CRender.cpp -I$HOME/raylib/include -L$HOME/raylib/lib -lraylib -o TestRender
-//
-//
-// Either way, run it with:
-//
-//     ./TestRender
-//
-//-----------------------------------------------------------------------------
 
 #include "CRender.h"
 
@@ -46,9 +19,6 @@ class CBall
         //---Physics simulation---
         void Update();
         
-        //---Tethering---
-        void TetherTo( CBall& arOther );
-
         //---Rendering---
         void Draw() const;
        
@@ -65,10 +35,6 @@ class CBall
         const float mGravity;   // acceleration due to mGravity
 
         Color mColour;
-
-        // Another ball this one is tethered to, or NULL for none. We know
-        // it, we don't own it: main creates and deletes the balls.
-        CBall* mpTether;
 
         //---Renderer---
         CRender& mrRender;        
@@ -99,7 +65,6 @@ class CBox
 int main()
 {
     const int NumBalls = 500;
-    const int NumTethers = 500;
     const int NumBoxes = 6;
     CRender Render;
     std::vector<CBall*> Balls;
@@ -113,12 +78,6 @@ int main()
     for( int i=0; i<NumBalls; ++i )
     {
         Balls.push_back( new CBall( Render ) );
-    }
-
-    //---Tether some of the balls to a randomly chosen partner---
-    for( int i=0; i<NumTethers; ++i )
-    {
-        Balls[i]->TetherTo( *Balls[ rand() % NumBalls ] );
     }
     
     //---The main loop---
@@ -174,7 +133,6 @@ CBall::CBall( CRender& arRender )
             (unsigned char)(rand()%255), 
             128 
         },
-        mpTether( NULL ),
         mrRender( arRender )
 {
     
@@ -214,22 +172,9 @@ void CBall::Update()
 }
 
 
-void CBall::TetherTo( CBall& arOther )
-{
-    mpTether = &arOther;
-}
-
-
 void CBall::Draw() const
 {
-    const float TetherThickness = 2.0f;
-
     mrRender.DrawCircle( mPosition, mRadius, mColour );
-
-    if( mpTether != NULL )
-    {
-        mrRender.DrawLine( mPosition, mpTether->mPosition, TetherThickness, mColour );
-    }
 }
 
 
