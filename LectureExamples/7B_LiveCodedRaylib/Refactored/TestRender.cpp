@@ -73,47 +73,78 @@ class CBox: public CRigidBody
 };
 
 //-----------------------------------------------------------------------------
+// todo: comment properly
+class CSim
+{
+    public:
+        CSim();
+        ~CSim();
+        
+        void Run();
+        
+    private:
+        static const int NumBalls;
+        static const int NumBoxes;
+        CRender mRender;
+
+        std::vector<CRigidBody*> mBodies;
+};
+
+
+
+//-----------------------------------------------------------------------------
 // todo: comment
 int main()
 {
-    const int NumBalls = 500;
-    const int NumBoxes = 6;
-    CRender Render;
+
+    CSim MySim;
     
-    std::vector<CRigidBody*> Bodies;
-    
+    MySim.Run();
+   
+    return 0;
+}
+
+
+
+//-----------------------------------------------------------------------------
+CSim::CSim()
+{
     for( int i=0; i<NumBoxes; ++i )
     {
-        Bodies.push_back( new CBox( Render ) );
+        mBodies.push_back( new CBox( mRender ) );
     }
     for( int i=0; i<NumBalls; ++i )
     {
-        Bodies.push_back( new CBall( Render ) );
+        mBodies.push_back( new CBall( mRender ) );
     }
-    
-    //---The main loop---
-    while( !Render.WindowShouldClose() ) 
-    {
-        Render.BeginDrawing();
+}
 
-        for( int i=0; i<Bodies.size(); ++i )
-        {
-            Bodies[i]->Update();
-            Bodies[i]->Draw();
-        }
-
-        Render.EndDrawing();
-    }
-    
+//-----------------------------------------------------------------------------
+CSim::~CSim()
+{
     //---Cleanup---
-    Render.CloseWindow();
+    mRender.CloseWindow();
         
-    for( int i=0; i<Bodies.size(); ++i )
+    for( int i=0; i<mBodies.size(); ++i )
     {
-        delete Bodies[i];
+        delete mBodies[i];
     }
-    
-    return 0;
+}
+
+void CSim::Run()
+{
+    //---The main loop---
+    while( !mRender.WindowShouldClose() ) 
+    {
+        mRender.BeginDrawing();
+
+        for( int i=0; i<mBodies.size(); ++i )
+        {
+            mBodies[i]->Update();
+            mBodies[i]->Draw();
+        }
+        mRender.EndDrawing();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -228,3 +259,8 @@ void CBox::Draw() const
 {
     mrRender.DrawRectangle( mPosition, mSize, mColour );
 }
+
+//-----------
+const int CSim::NumBalls = 500;
+const int CSim::NumBoxes = 6;
+
