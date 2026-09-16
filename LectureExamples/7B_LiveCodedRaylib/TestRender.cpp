@@ -41,20 +41,30 @@ class CBall
 };
 
 //-----------------------------------------------------------------------------
-// A static, semi-transparent box drawn behind the balls, mostly to show off
-// CRender::DrawRectangle.
+// A box that falls and bounces like the balls do. It always stays upright: no
+// rotation, so the bounce tests are just against its four edges.
 class CBox
 {
     public:
         //---Ctor/Dtor---
         CBox( CRender& arRender );
 
+        //---Physics simulation---
+        void Update();
+
         //---Rendering---
         void Draw() const;
 
     private:
+        //---
         Vec2D mTopLeft;
+        Vec2D mVelocity;
         Vec2D mSize;
+
+        //---Consts---
+        const float mDamping;   // energy loss on bounce
+        const float mGravity;   // see the TODO on CBall::mGravity
+
         Color mColour;
 
         //---Renderer---
@@ -87,6 +97,7 @@ int main()
 
         for( int i=0; i<NumBoxes; ++i )
         {
+            Boxes[i]->Update();
             Boxes[i]->Draw();
         }
 
@@ -182,20 +193,55 @@ void CBall::Draw() const
 CBox::CBox( CRender& arRender )
     :   mTopLeft
         ({
-            arRender.GetScreenWidth() * (float(rand())/RAND_MAX),
-            arRender.GetScreenHeight() * (float(rand())/RAND_MAX)
+            400.0f + (300.0f * (float(rand())/RAND_MAX - 0.5f)),
+            100.0f + (100.0f * (float(rand())/RAND_MAX - 0.5f))
         }),
+        mVelocity( {4.0f + 4.0f * (float(rand())/RAND_MAX - 0.5f), 0.0f} ),
         mSize( { 60.0f + 120.0f * (float(rand())/RAND_MAX), 40.0f + 80.0f * (float(rand())/RAND_MAX) } ),
+        mDamping( 0.97f ),
+        mGravity( 0.5f ),
         mColour
         {
             (unsigned char)(rand()%255),
             (unsigned char)(rand()%255),
             (unsigned char)(rand()%255),
-            64
+            128
         },
         mrRender( arRender )
 {
 
+}
+
+void CBox::Update()
+{
+    mVelocity.y += mGravity;
+
+    mTopLeft.x += mVelocity.x;
+    mTopLeft.y += mVelocity.y;
+
+    // Bounce off floor
+    if( mTopLeft.y + mSize.y > mrRender.GetScreenHeight() )
+    {
+        mTopLeft.y = mrRender.GetScreenHeight() - mSize.y;  // reposition at floor
+
+        // Reverse velocity and add a small random variation
+        const float RandomVelocityOffset = 5.0f * (float(rand())/RAND_MAX - 0.5f);
+        mVelocity.y *= -mDamping;
+        mVelocity.y += RandomVelocityOffset;
+    }
+
+    // Bounce off ceiling
+    if( mTopLeft.y < 0 )
+    {
+        mTopLeft.y = 0;
+        mVelocity.y *= -mDamping;
+    }
+
+    // Bounce off walls
+    if( mTopLeft.x < 0 || mTopLeft.x + mSize.x > mrRender.GetScreenWidth() )
+    {
+        mVelocity.x *= -1;
+    }
 }
 
 
