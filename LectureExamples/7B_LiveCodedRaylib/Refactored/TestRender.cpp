@@ -10,10 +10,37 @@
 #include <vector>
 
 //-----------------------------------------------------------------------------
-class CBall
+// todo: comment properly
+class CRigidBody
 {
     public:
-        //---Ctor/Dtor---    
+        CRigidBody( CRender& arRender );
+
+        //---Physics simulation---
+        virtual void Update() = 0;
+        
+        //---Rendering---
+        virtual void Draw() const = 0;
+
+    protected:
+        //---Consts---
+        const float mDamping;   // energy loss on bounce
+        const float mGravity;   // acceleration due to mGravity
+
+        //---Physics properties---
+        Color mColour;
+        Vec2D mPosition;
+        Vec2D mVelocity;
+
+        //---Renderer---
+        CRender& mrRender;
+};
+
+//-----------------------------------------------------------------------------
+// todo: comment properly
+class CBall: public CRigidBody
+{
+    public:
         CBall( CRender& arRender );
         
         //---Physics simulation---
@@ -23,30 +50,15 @@ class CBall
         void Draw() const;
        
     private:
-        //---
-        Vec2D mPosition;
-        Vec2D mVelocity;
         float mRadius;
-
-        //---Consts---
-        const float mDamping;   // energy loss on bounce
-
-        // TODO: mGravity really isn't part of the ball, put somewhere better
-        const float mGravity;   // acceleration due to mGravity
-
-        Color mColour;
-
-        //---Renderer---
-        CRender& mrRender;        
 };
 
 //-----------------------------------------------------------------------------
 // A box that falls and bounces like the balls do. It always stays upright: no
 // rotation, so the bounce tests are just against its four edges.
-class CBox
+class CBox: public CRigidBody
 {
     public:
-        //---Ctor/Dtor---
         CBox( CRender& arRender );
 
         //---Physics simulation---
@@ -57,37 +69,26 @@ class CBox
 
     private:
         //---
-        Vec2D mTopLeft;
-        Vec2D mVelocity;
         Vec2D mSize;
-
-        //---Consts---
-        const float mDamping;   // energy loss on bounce
-        const float mGravity;   // see the TODO on CBall::mGravity
-
-        Color mColour;
-
-        //---Renderer---
-        CRender& mrRender;
 };
 
 //-----------------------------------------------------------------------------
+// todo: comment
 int main()
 {
     const int NumBalls = 500;
     const int NumBoxes = 6;
     CRender Render;
-    std::vector<CBall*> Balls;
-    std::vector<CBox*> Boxes;
-
+    
+    std::vector<CRigidBody*> Bodies;
+    
     for( int i=0; i<NumBoxes; ++i )
     {
-        Boxes.push_back( new CBox( Render ) );
+        Bodies.push_back( new CBox( Render ) );
     }
-
     for( int i=0; i<NumBalls; ++i )
     {
-        Balls.push_back( new CBall( Render ) );
+        Bodies.push_back( new CBall( Render ) );
     }
     
     //---The main loop---
@@ -95,46 +96,34 @@ int main()
     {
         Render.BeginDrawing();
 
-        for( int i=0; i<NumBoxes; ++i )
+        for( int i=0; i<Bodies.size(); ++i )
         {
-            Boxes[i]->Update();
-            Boxes[i]->Draw();
+            Bodies[i]->Update();
+            Bodies[i]->Draw();
         }
 
-        for( int i=0; i<NumBalls; ++i )
-        {
-            Balls[i]->Update();
-            Balls[i]->Draw();
-        }                        
         Render.EndDrawing();
     }
     
     //---Cleanup---
     Render.CloseWindow();
         
-    for( int i=0; i<NumBalls; ++i )
+    for( int i=0; i<Bodies.size(); ++i )
     {
-        delete Balls[i];
-    }
-
-    for( int i=0; i<NumBoxes; ++i )
-    {
-        delete Boxes[i];
+        delete Bodies[i];
     }
     
     return 0;
 }
 
-
 //-----------------------------------------------------------------------------
-CBall::CBall( CRender& arRender )
+CRigidBody::CRigidBody( CRender& arRender )
     :   mPosition
         ({
             400.0f + (100.0f * (float(rand())/RAND_MAX - 0.5f)), 
             300.0f + (100.0f * (float(rand())/RAND_MAX - 0.5f))
         }),
         mVelocity( {4.0f + 4.0f * (float(rand())/RAND_MAX - 0.5f), 0.0f} ),
-        mRadius( 25.0f + 20.0f * (float(rand())/RAND_MAX - 0.5f)),
         mDamping( 0.97f ),
         mGravity( 0.5f ),
         mColour
@@ -145,6 +134,14 @@ CBall::CBall( CRender& arRender )
             128 
         },
         mrRender( arRender )
+{
+    
+}
+
+//-----------------------------------------------------------------------------
+CBall::CBall( CRender& arRender )
+    :   mRadius( 25.0f + 20.0f * (float(rand())/RAND_MAX - 0.5f)),
+        CRigidBody( arRender )
 {
     
 }
@@ -182,7 +179,6 @@ void CBall::Update()
     }
 }
 
-
 void CBall::Draw() const
 {
     mrRender.DrawCircle( mPosition, mRadius, mColour );
@@ -191,23 +187,8 @@ void CBall::Draw() const
 
 //-----------------------------------------------------------------------------
 CBox::CBox( CRender& arRender )
-    :   mTopLeft
-        ({
-            400.0f + (300.0f * (float(rand())/RAND_MAX - 0.5f)),
-            100.0f + (100.0f * (float(rand())/RAND_MAX - 0.5f))
-        }),
-        mVelocity( {4.0f + 4.0f * (float(rand())/RAND_MAX - 0.5f), 0.0f} ),
-        mSize( { 60.0f + 120.0f * (float(rand())/RAND_MAX), 40.0f + 80.0f * (float(rand())/RAND_MAX) } ),
-        mDamping( 0.97f ),
-        mGravity( 0.5f ),
-        mColour
-        {
-            (unsigned char)(rand()%255),
-            (unsigned char)(rand()%255),
-            (unsigned char)(rand()%255),
-            128
-        },
-        mrRender( arRender )
+    :   mSize( { 60.0f + 120.0f * (float(rand())/RAND_MAX), 40.0f + 80.0f * (float(rand())/RAND_MAX) } ),
+        CRigidBody( arRender )
 {
 
 }
@@ -216,13 +197,13 @@ void CBox::Update()
 {
     mVelocity.y += mGravity;
 
-    mTopLeft.x += mVelocity.x;
-    mTopLeft.y += mVelocity.y;
+    mPosition.x += mVelocity.x;
+    mPosition.y += mVelocity.y;
 
     // Bounce off floor
-    if( mTopLeft.y + mSize.y > mrRender.GetScreenHeight() )
+    if( mPosition.y + mSize.y > mrRender.GetScreenHeight() )
     {
-        mTopLeft.y = mrRender.GetScreenHeight() - mSize.y;  // reposition at floor
+        mPosition.y = mrRender.GetScreenHeight() - mSize.y;  // reposition at floor
 
         // Reverse velocity and add a small random variation
         const float RandomVelocityOffset = 5.0f * (float(rand())/RAND_MAX - 0.5f);
@@ -231,21 +212,19 @@ void CBox::Update()
     }
 
     // Bounce off ceiling
-    if( mTopLeft.y < 0 )
+    if( mPosition.y < 0 )
     {
-        mTopLeft.y = 0;
+        mPosition.y = 0;
         mVelocity.y *= -mDamping;
     }
 
     // Bounce off walls
-    if( mTopLeft.x < 0 || mTopLeft.x + mSize.x > mrRender.GetScreenWidth() )
+    if( mPosition.x < 0 || mPosition.x + mSize.x > mrRender.GetScreenWidth() )
     {
         mVelocity.x *= -1;
     }
 }
-
-
 void CBox::Draw() const
 {
-    mrRender.DrawRectangle( mTopLeft, mSize, mColour );
+    mrRender.DrawRectangle( mPosition, mSize, mColour );
 }
