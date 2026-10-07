@@ -213,10 +213,7 @@ CBall::CBall( CRender& arRender )
 void CBall::Update()
 {
     mVelocity.y += CSim::GetInstance()->GetGravity();
-
-    // Update position // TODO: use or program a vector that knows how to mPosition += mVelocity;
-    mPosition.x += mVelocity.x;
-    mPosition.y += mVelocity.y;
+    mPosition += mVelocity;
 
     // Bounce off floor
     if( mPosition.y + mRadius > mrRender.GetScreenHeight() ) 
@@ -261,9 +258,8 @@ void CBox::Update()
 {
     mVelocity.y += CSim::GetInstance()->GetGravity();
 
-    mPosition.x += mVelocity.x;
-    mPosition.y += mVelocity.y;
-
+    mPosition += mVelocity;
+    
     // Bounce off floor
     if( mPosition.y + mSize.y > mrRender.GetScreenHeight() )
     {
