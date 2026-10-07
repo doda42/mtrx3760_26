@@ -17,7 +17,7 @@ class CSim;
 class CRigidBody
 {
     public:
-        CRigidBody( CRender& arRender, const CSim& arSim );
+        CRigidBody( CRender& arRender );
 
         //---Physics simulation---
         virtual void Update() = 0;
@@ -36,7 +36,6 @@ class CRigidBody
 
         //---Renderer---
         CRender& mrRender;
-        const CSim& mrSim;
 };
 
 //-----------------------------------------------------------------------------
@@ -44,7 +43,7 @@ class CRigidBody
 class CBall: public CRigidBody
 {
     public:
-        CBall( CRender& arRender, const CSim& arSim );
+        CBall( CRender& arRender );
         
         //---Physics simulation---
         void Update();
@@ -62,7 +61,7 @@ class CBall: public CRigidBody
 class CBox: public CRigidBody
 {
     public:
-        CBox( CRender& arRender, const CSim& arSim );
+        CBox( CRender& arRender );
 
         //---Physics simulation---
         void Update();
@@ -80,53 +79,69 @@ class CBox: public CRigidBody
 class CSim
 {
     public:
-        CSim();
         ~CSim();
-        
+
+        static CSim* GetInstance();    // single point of access
+        void Init();  // todo: investigate how to have a constructor work here        
+
         void Run();
         float GetGravity() const;
         
     private:
         //---Consts---
-        const float mGravity;   // acceleration due to mGravity
-        const int mNumBalls;
-        const int mNuMBoxes;
+        // todo: without a constructor how do i do consts?!
+        float mGravity;   // acceleration due to mGravity
+        int mNumBalls;
+        int mNuMBoxes;
         
         //---
         CRender mRender;
         std::vector<CRigidBody*> mBodies;
-};
 
+        //---Singleton---
+        static CSim* instance;         // static pointer to instance
+        CSim(const CSim&);             // not implemented so you can't copy
+        void operator=(const CSim&);   // not implemented so you can't assign
+        CSim() { }                     // private so you can't instantiate
+};
+CSim* CSim::instance = 0;   // Init to 0 when the program starts
+
+//--Single point of access---------------------
+CSim* CSim::GetInstance()
+{
+  if( instance == 0 ) { // true on first call only
+    instance = new CSim();       // instantiation happens exactly once
+  }
+  return instance;
+}
 
 
 //-----------------------------------------------------------------------------
 // todo: comment
 int main()
 {
+    CSim::GetInstance()->Init();
+    CSim::GetInstance()->Run();
 
-    CSim MySim;
-    
-    MySim.Run();
-   
     return 0;
 }
 
 
 
 //-----------------------------------------------------------------------------
-CSim::CSim()
-:
-    mGravity( 0.5f ),
-    mNumBalls( 500 ),
-    mNuMBoxes( 6 )
+void CSim::Init()
 {
+    mGravity = 0.5f;
+    mNumBalls = 500;
+    mNuMBoxes = 6;
+
     for( int i=0; i<mNuMBoxes; ++i )
     {
-        mBodies.push_back( new CBox( mRender, *this ) );
+        mBodies.push_back( new CBox( mRender ) );
     }
     for( int i=0; i<mNumBalls; ++i )
     {
-        mBodies.push_back( new CBall( mRender, *this ) );
+        mBodies.push_back( new CBall( mRender ) );
     }
 }
 
@@ -165,7 +180,7 @@ float CSim::GetGravity() const
 
 
 //-----------------------------------------------------------------------------
-CRigidBody::CRigidBody( CRender& arRender, const CSim& arSim )
+CRigidBody::CRigidBody( CRender& arRender )
     :   mPosition
         ({
             400.0f + (100.0f * (float(rand())/RAND_MAX - 0.5f)), 
@@ -180,23 +195,22 @@ CRigidBody::CRigidBody( CRender& arRender, const CSim& arSim )
             (unsigned char)(rand()%255), 
             128 
         },
-        mrSim( arSim),
         mrRender( arRender )
 {
     
 }
 
 //-----------------------------------------------------------------------------
-CBall::CBall( CRender& arRender, const CSim& arSim )
+CBall::CBall( CRender& arRender )
     :   mRadius( 25.0f + 20.0f * (float(rand())/RAND_MAX - 0.5f)),
-        CRigidBody( arRender, arSim )
+        CRigidBody( arRender )
 {
     
 }
 
 void CBall::Update()
 {
-    mVelocity.y += mrSim.GetGravity();
+    mVelocity.y += CSim::GetInstance()->GetGravity();
 
     // Update position // TODO: use or program a vector that knows how to mPosition += mVelocity;
     mPosition.x += mVelocity.x;
@@ -234,16 +248,16 @@ void CBall::Draw() const
 
 
 //-----------------------------------------------------------------------------
-CBox::CBox( CRender& arRender, const CSim& arSim )
+CBox::CBox( CRender& arRender )
     :   mSize( { 60.0f + 120.0f * (float(rand())/RAND_MAX), 40.0f + 80.0f * (float(rand())/RAND_MAX) } ),
-        CRigidBody( arRender, arSim )
+        CRigidBody( arRender )
 {
 
 }
 
 void CBox::Update()
 {
-    mVelocity.y += mrSim.GetGravity();
+    mVelocity.y += CSim::GetInstance()->GetGravity();
 
     mPosition.x += mVelocity.x;
     mPosition.y += mVelocity.y;
