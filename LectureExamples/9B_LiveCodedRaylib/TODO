@@ -1,5 +1,3 @@
-operator overload
-
 move common update out of derived classes in physics update
 
 break into header and implementation files
