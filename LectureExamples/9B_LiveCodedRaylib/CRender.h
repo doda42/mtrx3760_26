@@ -9,14 +9,10 @@
 #ifndef CRENDER_H
 #define CRENDER_H
 
+#include "CVec2D.h"
+
 #include "raylib.h"
 
-//-----------------------------------------------------------------------------
-struct Vec2D
-{
-    float x;
-    float y;
-};
 
 //-----------------------------------------------------------------------------
 class CRender
@@ -33,9 +29,9 @@ class CRender
         void BeginDrawing();
         void EndDrawing();
 
-        void DrawCircle( Vec2D aPosition, int aRadius, Color aColor );
-        void DrawLine( Vec2D aStart, Vec2D aEnd, float aThickness, Color aColor );
-        void DrawRectangle( Vec2D aTopLeft, Vec2D aSize, Color aColor );
+        void DrawCircle( CVec2D aPosition, int aRadius, Color aColor );
+        void DrawLine( CVec2D aStart, CVec2D aEnd, float aThickness, Color aColor );
+        void DrawRectangle( CVec2D aTopLeft, CVec2D aSize, Color aColor );
 
         //---Access to the window---
         int GetScreenWidth() const;

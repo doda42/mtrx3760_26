@@ -4,10 +4,12 @@
 // A simple demo of using the CRender class.
 
 #include "CRender.h"
+#include "CVec2D.h"
 
 #include <stdlib.h>   // for rand()
 #include <iostream>
 #include <vector>
+
 
 //--Fwd decl---
 class CSim;
@@ -31,8 +33,8 @@ class CRigidBody
 
         //---Physics properties---
         Color mColour;
-        Vec2D mPosition;
-        Vec2D mVelocity;
+        CVec2D mPosition;
+        CVec2D mVelocity;
 
         //---Renderer---
         CRender& mrRender;
@@ -71,7 +73,7 @@ class CBox: public CRigidBody
 
     private:
         //---
-        Vec2D mSize;
+        CVec2D mSize;
 };
 
 //-----------------------------------------------------------------------------

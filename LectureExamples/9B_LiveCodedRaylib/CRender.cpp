@@ -50,12 +50,12 @@ void CRender::EndDrawing()
     ::EndDrawing();
 }
 
-void CRender::DrawCircle( Vec2D aPosition, int aRadius, Color aColor )
+void CRender::DrawCircle( CVec2D aPosition, int aRadius, Color aColor )
 {
     ::DrawCircle( aPosition.x, aPosition.y, aRadius, aColor );
 }
 
-void CRender::DrawLine( Vec2D aStart, Vec2D aEnd, float aThickness, Color aColor )
+void CRender::DrawLine( CVec2D aStart, CVec2D aEnd, float aThickness, Color aColor )
 {
     Vector2 Start = { aStart.x, aStart.y };
     Vector2 End = { aEnd.x, aEnd.y };
@@ -63,7 +63,7 @@ void CRender::DrawLine( Vec2D aStart, Vec2D aEnd, float aThickness, Color aColor
     ::DrawLineEx( Start, End, aThickness, aColor );
 }
 
-void CRender::DrawRectangle( Vec2D aTopLeft, Vec2D aSize, Color aColor )
+void CRender::DrawRectangle( CVec2D aTopLeft, CVec2D aSize, Color aColor )
 {
     Vector2 TopLeft = { aTopLeft.x, aTopLeft.y };
     Vector2 Size = { aSize.x, aSize.y };
